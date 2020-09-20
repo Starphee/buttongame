@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Button Game</title>
+    <meta name="description" content="Hello, WebVR! • A-Frame">
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene background="color: black">
+       <a-camera position="2.5 2 3.5"></a-camera>
+       <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-0.5 1 1"></a-entity>
+      <a-plane position="2.5 2 0" rotation="0 0 0" width="5.6" height="5" color="#7BC8A4" roughness="1" shadow></a-plane>
+    </a-scene>
+    <script>
+      console.log('hello world!');
+      const scene = document.querySelector('a-scene');
+
+      // Make an A-Frame element.
+      function makeElement(name, attributes, dest = scene) {
+        const e = document.createElement(`a-${name}`);
+        Object.entries(attributes).forEach(([key, value]) => {
+          e.setAttribute(key, value);
+        });
+
+        dest.appendChild(e);
+        return e;
+      }
+
+
+      // Make a new button.
+      function makeButton(scale, x, y) {
+        const buttonHeight = 2;
+        const buttonRadius = 4;
+        const buttonHolder = makeElement('entity', {position: {x, y, z:0}});
+
+        const innerButton = makeElement('sphere', {
+          position: { y: 0, z: -1 * scale, x: 0},
+          radius: buttonRadius * scale,
+          color: 'blue',
+          opacity: 0.3,
+          shadow: true,
+        }, buttonHolder);
+
+        const outerButton = makeElement('cylinder', {
+          position: { x: 0, y: 0, z: 0},
+          radius: (buttonRadius * 1.25) * scale,
+          color: 'white',
+          rotation: { x: -90, y: 0, z: 0},
+          height: (buttonHeight / 2) * scale,
+          shadow: true,
+        }, buttonHolder);
+
+        const light = makeElement('light', {
+          position: { y: 0, z: 2 * scale, x: 0},
+          color: 'white',
+          type: 'point',
+          intensity: 0,
+        }, buttonHolder);
+
+        const time = ((10 * Math.random()) + 2) * 1000;
+        setInterval(() => {
+          light.setAttribute('intensity', 2);
+          const fadeOut = setInterval(() => {
+            const intensity = parseFloat(light.getAttribute('intensity')) - 0.15;
+            light.setAttribute('intensity', intensity);
+            //console.log(intensity);
+            if (intensity <= 0) {
+              light.setAttribute('intensity', 0);
+              clearInterval(fadeOut);
+            }
+
+          }, 50)
+
+          //console.log('Light ', !!light.intensity);
+        }, time);
+      //  console.log(time);
+      }
+
+      const scale = 0.05;
+      const grid = {x: 6, y: 5};
+    //  const grid = {x: 1, y: 1};
+
+      for (let x = 0; x < grid.x; x++) {
+        for (let y = 0; y < grid.y; y++) {
+          makeButton(scale, x, y);
+        }
+      }
+
+    </script>
+  </body>
+</html>

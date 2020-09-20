@@ -1,0 +1,17 @@
+{
+  "name": "buttongame",
+  "description": "Early build of VR button game",
+  "version": "0.0.1",
+  "license": "MIT",
+  "scripts": {
+    "start": "budo --live --ssl --verbose --port 3000 --open"
+  },
+  "keywords": [
+    "aframe",
+    "webvr",
+    "vr"
+  ],
+  "devDependencies": {
+    "budo": "^11.6.4"
+  }
+}
