@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Button Game</title>
-    <meta name="description" content="Hello, WebVR! • A-Frame">
+    <meta name="description" content="Hello, WebVR! • A-Frame" />
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
+    <script src="https://unpkg.com/super-hands@3.0.0/dist/super-hands.min.js"></script>
   </head>
   <body>
     <a-scene background="color: black">
-       <a-camera position="2.5 2 3.5"></a-camera>
-       <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-0.5 1 1"></a-entity>
-      <a-plane position="2.5 2 0" rotation="0 0 0" width="5.6" height="5" color="#7BC8A4" roughness="1" shadow></a-plane>
+      <a-camera position="0 1.5 1"></a-camera>
+      <a-entity
+        id="leftHand"
+        hand-controls="hand: left; handModelStyle: lowPoly; color: #ffcccc"
+      ></a-entity>
+      <a-entity
+        id="rightHand"
+        hand-controls="hand: right; handModelStyle: lowPoly; color: #ffcccc"
+      ></a-entity>
+      <a-entity
+        light="type: directional; color: #FFF; intensity: 0.6"
+        position="-0.5 1 1"
+      ></a-entity>
     </a-scene>
     <script>
-      console.log('hello world!');
-      const scene = document.querySelector('a-scene');
+      console.log("hello world!");
+      const scene = document.querySelector("a-scene");
 
       // Make an A-Frame element.
       function makeElement(name, attributes, dest = scene) {
@@ -27,66 +39,126 @@
         return e;
       }
 
-
       // Make a new button.
-      function makeButton(scale, x, y) {
+      function makeButton(scale, x, y, z, name) {
         const buttonHeight = 2;
         const buttonRadius = 4;
-        const buttonHolder = makeElement('entity', {position: {x, y, z:0}});
+        const buttonHolder = makeElement("entity", {
+          position: { x, y, z },
+          id: name,
+        });
 
-        const innerButton = makeElement('sphere', {
-          position: { y: 0, z: -1 * scale, x: 0},
-          radius: buttonRadius * scale,
-          color: 'blue',
-          opacity: 0.3,
-          shadow: true,
-        }, buttonHolder);
+        const innerButton = makeElement(
+          "sphere",
+          {
+            position: { y: 0, z: -1 * scale, x: 0 },
+            radius: buttonRadius * scale,
+            color: "blue",
+            opacity: 0.3,
+            shadow: true,
+            "sphere-collider": "objects: a-entity",
+          },
+          buttonHolder
+        );
 
-        const outerButton = makeElement('cylinder', {
-          position: { x: 0, y: 0, z: 0},
-          radius: (buttonRadius * 1.25) * scale,
-          color: 'white',
-          rotation: { x: -90, y: 0, z: 0},
-          height: (buttonHeight / 2) * scale,
-          shadow: true,
-        }, buttonHolder);
+        const outerButton = makeElement(
+          "cylinder",
+          {
+            position: { x: 0, y: 0, z: 0 },
+            radius: buttonRadius * 1.25 * scale,
+            color: "white",
+            rotation: { x: -90, y: 0, z: 0 },
+            height: (buttonHeight / 2) * scale,
+            shadow: true,
+          },
+          buttonHolder
+        );
 
-        const light = makeElement('light', {
-          position: { y: 0, z: 2 * scale, x: 0},
-          color: 'white',
-          type: 'point',
-          intensity: 0,
-        }, buttonHolder);
+        const light = makeElement(
+          "light",
+          {
+            position: { y: 0, z: 2 * scale, x: 0 },
+            color: "white",
+            type: "point",
+            intensity: 0,
+          },
+          buttonHolder
+        );
 
-        const time = ((10 * Math.random()) + 2) * 1000;
+        console.log("SLOOP");
+        let touched = false;
+        innerButton.addEventListener("hit", (e) => {
+          if (e.detail.el !== null && touched === false) {
+            touched = true;
+            console.log("Touch button", e.detail.el.id, name);
+            light.setAttribute("color", "green");
+            light.setAttribute("intensity", 1);
+          }
+        });
+
+        innerButton.addEventListener("hitend", (e) => {
+          if (e.detail.el !== null && touched === true) {
+            touched = false;
+            console.log("STOP touch button", e.detail.el.id, name);
+            light.setAttribute("color", "white");
+          }
+        });
+
+        const time = (10 * Math.random() + 2) * 1000;
         setInterval(() => {
-          light.setAttribute('intensity', 2);
+          light.setAttribute("intensity", 2);
           const fadeOut = setInterval(() => {
-            const intensity = parseFloat(light.getAttribute('intensity')) - 0.15;
-            light.setAttribute('intensity', intensity);
+            const intensity =
+              parseFloat(light.getAttribute("intensity")) - 0.15;
+            light.setAttribute("intensity", intensity);
             //console.log(intensity);
             if (intensity <= 0) {
-              light.setAttribute('intensity', 0);
+              light.setAttribute("intensity", 0);
               clearInterval(fadeOut);
             }
-
-          }, 50)
+          }, 50);
 
           //console.log('Light ', !!light.intensity);
         }, time);
-      //  console.log(time);
+        //  console.log(time);
       }
 
-      const scale = 0.05;
-      const grid = {x: 6, y: 5};
-    //  const grid = {x: 1, y: 1};
+      const scale = 0.01;
+      const grid = { x: 4, y: 3 };
+      const gridScaleMultiplier = 40;
+      const width = grid.x * gridScaleMultiplier * scale;
+      const height = grid.y * gridScaleMultiplier * scale;
+      const margin = 20 * scale;
+      const offset = {
+        z: -70 * scale,
+        x: -50 * scale,
+        y: 100 * scale,
+      };
 
+      //  const grid = {x: 1, y: 1};
+      //  <a-plane position="2.5 2 0" rotation="0 0 0" width="5.6" height="5" color="#7BC8A4" roughness="1" shadow></a-plane>
+      makeElement("plane", {
+        position: {
+          x: width * 0.5 - margin + offset.x,
+          y: height * 0.5 - margin + offset.y,
+          z: 0 + offset.z,
+        },
+        width,
+        height,
+        color: "blue",
+        roughness: 1,
+      });
       for (let x = 0; x < grid.x; x++) {
         for (let y = 0; y < grid.y; y++) {
-          makeButton(scale, x, y);
+          makeButton(
+            scale,
+            x * scale * gridScaleMultiplier + offset.x,
+            y * scale * gridScaleMultiplier + offset.y,
+            offset.z,
+            `button-${x}-${y}`
+          );
         }
       }
-
     </script>
   </body>
 </html>
