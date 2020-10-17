@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "scripts": {
-    "start": "budo --live --ssl --verbose --port 3000 --open --host kids-rule"
+    "start": "budo --live --ssl --verbose --port 3000 --open --host kids-rule --dir src --wg '*.{html,js}'"
   },
   "keywords": [
     "aframe",
