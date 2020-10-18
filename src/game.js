@@ -54,98 +54,104 @@ function makeButton(scale, x, y, z, name) {
     },
     buttonHolder
   );
-  /*
-  const light = makeElement(
-    "light",
-    {
-      position: { y: 0, z: 1.8 * scale, x: 0 },
-      color: "white",
-      type: "point",
-      intensity: 0,
+
+  return {
+    state: false,
+    setState: function (state) {
+      this.state = state;
+      if (state) {
+        innerButton.setAttribute("material", buttonOnMaterial);
+      } else {
+        innerButton.setAttribute("material", buttonOffMaterial);
+      }
     },
-    buttonHolder
-  );
-  // Debug sphere
-  makeElement(
-    "sphere",
-    {
-      position: { y: 0, z: 1.8 * scale, x: 0 },
-      radius: 1 * scale,
-      color: "white",
-      opacity: 0,
-      shadow: false,
-      roughness: 1,
+    onTouch: function (callback) {
+      let touched = false;
+      innerButton.addEventListener("hit", (e) => {
+        if (e.detail.el !== null && touched === false) {
+          touched = true;
+          console.log("Touch button", e.detail.el.id, name);
+          callback(e.detail.el);
+        }
+      });
+
+      innerButton.addEventListener("hitend", (e) => {
+        if (e.detail.el !== null && touched === true) {
+          touched = false;
+          console.log("STOP touch button", e.detail.el.id, name);
+        }
+      });
     },
-    buttonHolder
-  );
-*/
-
-  let touched = false;
-  innerButton.addEventListener("hit", (e) => {
-    if (e.detail.el !== null && touched === false) {
-      touched = true;
-      console.log("Touch button", e.detail.el.id, name);
-      light.setAttribute("color", "green");
-      light.setAttribute("intensity", 1);
-    }
-  });
-
-  innerButton.addEventListener("hitend", (e) => {
-    if (e.detail.el !== null && touched === true) {
-      touched = false;
-      console.log("STOP touch button", e.detail.el.id, name);
-      light.setAttribute("color", "white");
-    }
-  });
-
-  // Create timer to manage on's and off's.
-  const offTime = Math.round(maxOffTime * Math.random() + minOffTime);
-  // Keep light off until...
-  setInterval(() => {
-    // Turn light on.
-    innerButton.setAttribute("material", buttonOnMaterial);
-    setTimeout(() => {
-      innerButton.setAttribute("material", buttonOffMaterial);
-    }, onTime);
-
-    //console.log('Light ', !!light.intensity);
-  }, offTime);
-  //  console.log(time);
+  };
 }
 
-const scale = 0.01;
-const grid = { x: 4, y: 3 };
-const gridScaleMultiplier = 40;
-const width = grid.x * gridScaleMultiplier * scale;
-const height = grid.y * gridScaleMultiplier * scale;
-const margin = 20 * scale;
-const offset = {
-  z: -70 * scale,
-  x: -50 * scale,
-  y: 100 * scale,
-};
+function makeGrid(x, y) {
+  const buttons = [];
+  const scale = 0.01;
+  const grid = { x, y };
+  const gridScaleMultiplier = 40;
+  const width = grid.x * gridScaleMultiplier * scale;
+  const height = grid.y * gridScaleMultiplier * scale;
+  const margin = 20 * scale;
+  const offset = {
+    z: -70 * scale,
+    x: -50 * scale,
+    y: 100 * scale,
+  };
 
-//  const grid = {x: 1, y: 1};
-//  <a-plane position="2.5 2 0" rotation="0 0 0" width="5.6" height="5" color="#7BC8A4" roughness="1" shadow></a-plane>
-makeElement("plane", {
-  position: {
-    x: width * 0.5 - margin + offset.x,
-    y: height * 0.5 - margin + offset.y,
-    z: 0 + offset.z,
-  },
-  width,
-  height,
-  color: "gray",
-  roughness: 1,
-});
-for (let x = 0; x < grid.x; x++) {
-  for (let y = 0; y < grid.y; y++) {
-    makeButton(
-      scale,
-      x * scale * gridScaleMultiplier + offset.x,
-      y * scale * gridScaleMultiplier + offset.y,
-      offset.z,
-      `button-${x}-${y}`
-    );
+  //  const grid = {x: 1, y: 1};
+  //  <a-plane position="2.5 2 0" rotation="0 0 0" width="5.6" height="5" color="#7BC8A4" roughness="1" shadow></a-plane>
+  makeElement("plane", {
+    position: {
+      x: width * 0.5 - margin + offset.x,
+      y: height * 0.5 - margin + offset.y,
+      z: 0 + offset.z,
+    },
+    width,
+    height,
+    color: "gray",
+    roughness: 1,
+  });
+  for (let x = 0; x < grid.x; x++) {
+    buttons[x] = [];
+    for (let y = 0; y < grid.y; y++) {
+      buttons[x][y] = makeButton(
+        scale,
+        x * scale * gridScaleMultiplier + offset.x,
+        y * scale * gridScaleMultiplier + offset.y,
+        offset.z,
+        `button-${x}-${y}`
+      );
+    }
   }
+  return buttons;
 }
+
+function setScore(value) {
+  document.getElementById("score").setAttribute("value", value);
+}
+
+const buttons = makeGrid(4, 3);
+let score = 0;
+buttons.forEach((col) => {
+  col.forEach((button) => {
+    // Create timer to manage on's and off's.
+    const offTime = Math.round(maxOffTime * Math.random() + minOffTime);
+    // Keep light off until...
+    setTimeout(() => {
+      button.setState(true);
+    }, offTime);
+
+    // When button is touched, turn off, start new timer.
+    button.onTouch((controller) => {
+      if (button.state) {
+        button.setState(false);
+        setScore(score++);
+        controller.components.haptics.pulse(0.3, 100);
+        setTimeout(() => {
+          button.setState(true);
+        }, offTime);
+      }
+    });
+  });
+});
