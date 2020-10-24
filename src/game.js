@@ -6,6 +6,13 @@ const maxOffTime = 10000;
 const buttonOnMaterial = "emissive: #fff; emissiveIntensity: 1;";
 const buttonOffMaterial = "emissive: #00f; emissiveIntensity: 0.5;";
 
+document.addEventListener("click", (e) => {
+  if (e.target.tagName === "A-SPHERE") {
+    //console.log("click!", e.target);
+    e.target.forceTouch();
+  }
+});
+
 // Make an A-Frame element.
 function makeElement(name, attributes, dest = scene) {
   const e = document.createElement(`a-${name}`);
@@ -74,6 +81,10 @@ function makeButton(scale, x, y, z, name) {
           callback(e.detail.el);
         }
       });
+
+      innerButton.forceTouch = () => {
+        callback(null);
+      };
 
       innerButton.addEventListener("hitend", (e) => {
         if (e.detail.el !== null && touched === true) {
@@ -147,7 +158,9 @@ buttons.forEach((col) => {
       if (button.state) {
         button.setState(false);
         setScore(score++);
-        controller.components.haptics.pulse(0.3, 100);
+        if (controller) {
+          controller.components.haptics.pulse(0.3, 100);
+        }
         setTimeout(() => {
           button.setState(true);
         }, offTime);
