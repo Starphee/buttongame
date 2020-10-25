@@ -1,11 +1,12 @@
 console.log("hello world!");
 const scene = document.querySelector("a-scene");
-const onTime = 5000;
-const minOffTime = onTime + 2000;
+
+const minOffTime = 2000;
 const maxOffTime = 10000;
 const buttonOnMaterial = "emissive: #fff; emissiveIntensity: 1;";
 const buttonOffMaterial = "emissive: #00f; emissiveIntensity: 0.5;";
 
+// Add desktop button clicking.
 document.addEventListener("click", (e) => {
   if (e.target.tagName === "A-SPHERE") {
     //console.log("click!", e.target);
@@ -62,8 +63,29 @@ function makeButton(scale, x, y, z, name) {
     buttonHolder
   );
 
+  function makeSound(src) {
+    return makeElement(
+      "entity",
+      {
+        position: { y: 0, z: -1 * scale, x: 0 },
+        sound: `src: #${src}; poolSize: 5`,
+      },
+      buttonHolder
+    );
+  }
+
   return {
     state: false,
+    playSound: function (sound) {
+      if (!this[sound]) {
+        this[sound] = makeSound(sound);
+        this[sound].addEventListener("sound-loaded", () => {
+          this[sound].components.sound.playSound();
+        });
+      } else {
+        this[sound].components.sound.playSound();
+      }
+    },
     setState: function (state) {
       this.state = state;
       if (state) {
@@ -156,14 +178,18 @@ buttons.forEach((col) => {
     // When button is touched, turn off, start new timer.
     button.onTouch((controller) => {
       if (button.state) {
+        button.playSound("beep-good");
         button.setState(false);
-        setScore(score++);
+        setScore(++score);
         if (controller) {
           controller.components.haptics.pulse(0.3, 100);
         }
         setTimeout(() => {
           button.setState(true);
         }, offTime);
+      } else {
+        button.playSound("beep-bad");
+        setScore(--score);
       }
     });
   });

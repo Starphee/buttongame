@@ -16,7 +16,9 @@
       raycaster="objects: a-sphere"
     >
       <a-assets>
-        <img id="sky" src="/assets/skybox1.png" />
+        <img id="sky" src="/assets/images/skybox1.png" />
+        <audio id="beep-bad" src="/assets/sounds/bad-beep.wav" />
+        <audio id="beep-good" src="/assets/sounds/good-beep.wav" />
       </a-assets>
       <a-sky src="#sky"></a-sky>
       <a-camera position="0 1.5 1"></a-camera>
@@ -42,7 +44,7 @@
       ></a-text>
       <a-text
         id="score"
-        value="000"
+        value="0"
         font="roboto"
         scale="1 1 0.5"
         position="0.2 2.2 -0.7"
